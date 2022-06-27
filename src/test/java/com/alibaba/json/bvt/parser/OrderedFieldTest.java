@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.parser.Feature;
 import edu.emory.mathcs.backport.java.util.Arrays;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,9 +16,9 @@ import java.util.Collection;
 public class OrderedFieldTest {
     private String json;
     private Model model;
-    private int expected;
+    private Integer expected;
 
-    public OrderedFieldTest(String json, int expected) {
+    public OrderedFieldTest(String json, Integer expected) {
         this.json = json;
         this.expected = expected;
     }
@@ -26,7 +27,9 @@ public class OrderedFieldTest {
     public static Collection getParameters() {
         return Arrays.asList(new Object[][] {
                 {"{\"id\":1001}", 1001},
-                {"{\"id\":1}", 1}
+                {"{\"id\":1}", 1},
+                {"", null},
+                {null, null}
         });
     }
 
@@ -37,17 +40,24 @@ public class OrderedFieldTest {
 
     @Test
     public void testOrderedFieldParseObject() {
-        Assert.assertEquals(this.expected, this.model.getId());
+        Integer actualId;
+        try {
+            actualId = this.model.getId();
+        } catch (NullPointerException e) {
+            actualId = null;
+        }
+        Assert.assertEquals(this.expected, actualId);
     }
 
     @Test
     public void testOrderedFieldToJSONString() {
+        Assume.assumeNotNull(this.model);
         Assert.assertEquals(this.json, JSON.toJSONString(this.model));
     }
 
-    public static interface Model {
-        public int getId();
-        public void setId(int value);
+    public interface Model {
+        int getId();
+        void setId(int value);
     }
 }
 
